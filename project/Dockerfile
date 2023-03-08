@@ -1,8 +1,8 @@
 #From https://towardsdatascience.com/docker-for-python-dash-r-shiny-6097c8998506
-
+# Also From https://towardsdatascience.com/deploy-containerized-plotly-dash-app-to-heroku-with-ci-cd-f82ca833375c
 FROM python:3.9-slim-buster
 
-LABEL maintainer "Robin Opdam, robinopdam@hotmail.com"
+LABEL maintainer "Aravind Chandrasekaran aravindcsn@gmail.com"
 
 # set working directory in container
 WORKDIR /usr/src/app
