@@ -1,43 +1,58 @@
-import dash_bootstrap_components as dbc
-from dash import Dash, dcc, html
+import dash
+from dash.exceptions import PreventUpdate
+from dash import dcc, html
 from dash.dependencies import Input, Output
-from functions import plot_regression
+import plotly.express as px
+import pandas as pd
+import base64
+import numpy as np
+# Create dash app
+app = dash.Dash(__name__)
+# Generate dataframe
+kmdf = pd.read_csv('Fgrow10_3_kmdf.csv',index_col=0)
+print(kmdf)
+# Create scatter plot with x and y coordinates
+fig = px.scatter(kmdf, x="Actin occupied Surface Fraction", 
+                 y="Mean number of unique actin filaments per VASP",
+                 custom_data=["images"],color="Predicted Cluster",
+                 labels ={
+               "Mean number of unique actin filaments per VASP":
+                 'Mean number of unique <br>  actin filaments per VASP',
+                 },)
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
+fig.update_layout(
+    font=dict(
+        family="Arial",
+        size=18,  # Set the font size here
+        color="Black"
+    )
+)
 
+# Update layout and update traces
+fig.update_layout(clickmode='event+select')
+fig.update_traces(marker_size=10)
+
+# Create app layout to show dash graph
 app.layout = html.Div(
-    [
-        html.Div(
-            [
-                dcc.Graph(id="regression_plot"),
-                html.P(
-                    "Standard Deviation, try changing it!",
-                    style={"color": "white", "marginLeft": "20px"},
-                ),
-                dcc.Slider(
-                    id="std_slider",
-                    min=0,
-                    max=40,
-                    step=0.5,
-                    value=10,
-                    marks={i: str(i) for i in range(0, 40, 5)},
-                ),
-            ]
-        ),
-    ]
+   [
+      dcc.Graph(
+         id="graph_interaction",
+         figure=fig,
+      ),
+      html.Img(id='image', src='')
+   ]
 )
 
-
+# html callback function to hover the data on specific coordinates
 @app.callback(
-    Output(component_id="regression_plot", component_property="figure"),
-    [Input(component_id="std_slider", component_property="value")],
-)
-def update_regression_plot(std: int) -> None:
-    return plot_regression(std)
+   Output('image', 'src'),
+   Input('graph_interaction', 'hoverData'))
 
+def open_url(hoverData):
+   if hoverData:
+      return hoverData["points"][0]["customdata"][0]
+   else:
+      raise PreventUpdate
 
-# Developing the app locally with debug=True enables
-# auto-reloading when making changes
-if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port=8050, debug=True)
+if __name__ == '__main__':
+   app.run_server(debug=False)
